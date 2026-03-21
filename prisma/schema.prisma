@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== Auth Models ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ==================== Enums ====================
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum FuelType {
+  DIESEL
+  DIESEL_B7
+  GASOHOL_91
+  GASOHOL_95
+  GASOHOL_E20
+  GASOHOL_E85
+  LPG
+  NGV
+}
+
+enum StationStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum DeliveryStatus {
+  SCHEDULED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum Region {
+  CENTRAL
+  NORTHERN
+  NORTHEASTERN
+  EASTERN
+  WESTERN
+  SOUTHERN
+}
+
+// ==================== Business Models ====================
+
+model Province {
+  id       String    @id @default(cuid())
+  nameEn   String
+  nameTh   String
+  region   Region
+  stations Station[]
+  depots   Depot[]
+
+  @@unique([nameEn])
+}
+
+model FuelPrice {
+  id            String   @id @default(cuid())
+  fuelType      FuelType
+  price         Float
+  effectiveDate DateTime
+  source        String   @default("EPPO")
+  createdAt     DateTime @default(now())
+
+  @@unique([fuelType, effectiveDate])
+  @@index([fuelType])
+  @@index([effectiveDate])
+}
+
+model Station {
+  id          String        @id @default(cuid())
+  name        String
+  address     String
+  provinceId  String
+  province    Province      @relation(fields: [provinceId], references: [id])
+  latitude    Float?
+  longitude   Float?
+  owner       String?
+  phone       String?
+  status      StationStatus @default(ACTIVE)
+  inventory   Inventory[]
+  deliveries  Delivery[]    @relation("DeliveryToStation")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([provinceId])
+  @@index([status])
+}
+
+model Depot {
+  id         String     @id @default(cuid())
+  name       String
+  address    String
+  provinceId String
+  province   Province   @relation(fields: [provinceId], references: [id])
+  latitude   Float?
+  longitude  Float?
+  capacity   Float      @default(0)
+  deliveries Delivery[] @relation("DeliveryFromDepot")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([provinceId])
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  stationId   String
+  station     Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  fuelType    FuelType
+  quantity    Float    @default(0)
+  capacity    Float    @default(0)
+  lastUpdated DateTime @default(now())
+
+  @@unique([stationId, fuelType])
+  @@index([stationId])
+}
+
+model Delivery {
+  id            String         @id @default(cuid())
+  depotId       String
+  depot         Depot          @relation("DeliveryFromDepot", fields: [depotId], references: [id])
+  stationId     String
+  station       Station        @relation("DeliveryToStation", fields: [stationId], references: [id])
+  fuelType      FuelType
+  quantity      Float
+  status        DeliveryStatus @default(SCHEDULED)
+  scheduledDate DateTime
+  deliveredDate DateTime?
+  driverName    String?
+  truckPlate    String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([stationId])
+  @@index([depotId])
+  @@index([status])
+  @@index([scheduledDate])
+}
