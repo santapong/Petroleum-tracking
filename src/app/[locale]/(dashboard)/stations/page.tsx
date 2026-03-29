@@ -31,6 +31,7 @@ export default function StationsPage() {
   const locale = useLocale();
   const [stations, setStations] = useState<Station[]>([]);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
     name: "", address: "", provinceId: "", owner: "", phone: "", status: "ACTIVE",
@@ -38,16 +39,24 @@ export default function StationsPage() {
 
   const fetchStations = useCallback(async () => {
     try {
+      setError(null);
       const url = search ? `/api/stations?search=${encodeURIComponent(search)}` : "/api/stations";
       const res = await fetch(url);
-      if (res.ok) setStations(await res.json());
-    } catch { /* ignore */ }
+      if (res.ok) {
+        setStations(await res.json());
+      } else {
+        setError("Failed to fetch stations");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   }, [search]);
 
   useEffect(() => { fetchStations(); }, [fetchStations]);
 
   const handleSubmit = async () => {
     try {
+      setError(null);
       const res = await fetch("/api/stations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,8 +66,13 @@ export default function StationsPage() {
         setDialogOpen(false);
         setForm({ name: "", address: "", provinceId: "", owner: "", phone: "", status: "ACTIVE" });
         fetchStations();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create station");
       }
-    } catch { /* ignore */ }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   };
 
   const statusBadge = (status: string) => {
@@ -99,6 +113,12 @@ export default function StationsPage() {
           />
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6">

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { validateDelivery } from "@/lib/validations";
 
 export async function GET(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const stationId = searchParams.get("stationId");
@@ -29,7 +34,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const body = await req.json();
+    const validation = validateDelivery(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    }
 
     const delivery = await prisma.delivery.create({
       data: {

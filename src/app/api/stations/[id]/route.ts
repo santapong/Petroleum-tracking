@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { validateStation, safeParseFloat } from "@/lib/validations";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { id } = await params;
     const station = await prisma.station.findUnique({
       where: { id },
@@ -27,8 +32,16 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { id } = await params;
     const body = await req.json();
+
+    const validation = validateStation(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    }
 
     const station = await prisma.station.update({
       where: { id },
@@ -36,8 +49,8 @@ export async function PUT(
         name: body.name,
         address: body.address,
         provinceId: body.provinceId,
-        latitude: body.latitude ? parseFloat(body.latitude) : null,
-        longitude: body.longitude ? parseFloat(body.longitude) : null,
+        latitude: safeParseFloat(body.latitude),
+        longitude: safeParseFloat(body.longitude),
         owner: body.owner,
         phone: body.phone,
         status: body.status,
@@ -56,6 +69,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { id } = await params;
     await prisma.station.delete({ where: { id } });
     return NextResponse.json({ success: true });

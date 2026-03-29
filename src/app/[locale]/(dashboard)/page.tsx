@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Fuel, Truck, DollarSign, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -13,6 +13,7 @@ const stats = [
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
 
   return (
     <div className="space-y-6">
@@ -78,28 +79,28 @@ export default function DashboardPage() {
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
               <a
-                href="/en/prices"
+                href={`/${locale}/prices`}
                 className="flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent transition-colors"
               >
                 <DollarSign className="h-6 w-6 text-primary" />
                 <span className="text-sm font-medium">Update Prices</span>
               </a>
               <a
-                href="/en/deliveries"
+                href={`/${locale}/deliveries`}
                 className="flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent transition-colors"
               >
                 <Truck className="h-6 w-6 text-primary" />
                 <span className="text-sm font-medium">New Delivery</span>
               </a>
               <a
-                href="/en/stations"
+                href={`/${locale}/stations`}
                 className="flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent transition-colors"
               >
                 <Fuel className="h-6 w-6 text-primary" />
                 <span className="text-sm font-medium">Manage Stations</span>
               </a>
               <a
-                href="/en/analytics"
+                href={`/${locale}/analytics`}
                 className="flex flex-col items-center gap-2 rounded-lg border p-4 hover:bg-accent transition-colors"
               >
                 <AlertTriangle className="h-6 w-6 text-primary" />
