@@ -1,14 +1,31 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { validateEmail, validatePassword } from "@/lib/validations";
 
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json();
 
-    if (!email || !password || !name) {
+    if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Name is required" },
+        { status: 400 }
+      );
+    }
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      return NextResponse.json(
+        { error: emailValidation.error },
+        { status: 400 }
+      );
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: "Invalid password", details: passwordValidation.errors },
         { status: 400 }
       );
     }
@@ -28,8 +45,8 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password: hashedPassword,
       },
     });

@@ -36,6 +36,7 @@ export default function DeliveriesPage() {
   const t = useTranslations("deliveries");
   const tCommon = useTranslations("common");
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [form, setForm] = useState({
@@ -44,16 +45,24 @@ export default function DeliveriesPage() {
 
   const fetchDeliveries = useCallback(async () => {
     try {
+      setError(null);
       const url = statusFilter !== "all" ? `/api/deliveries?status=${statusFilter}` : "/api/deliveries";
       const res = await fetch(url);
-      if (res.ok) setDeliveries(await res.json());
-    } catch { /* ignore */ }
+      if (res.ok) {
+        setDeliveries(await res.json());
+      } else {
+        setError("Failed to fetch deliveries");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   }, [statusFilter]);
 
   useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
 
   const handleSubmit = async () => {
     try {
+      setError(null);
       const res = await fetch("/api/deliveries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,12 +72,18 @@ export default function DeliveriesPage() {
         setDialogOpen(false);
         setForm({ depotId: "", stationId: "", fuelType: "", quantity: "", scheduledDate: "", driverName: "", truckPlate: "", notes: "" });
         fetchDeliveries();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create delivery");
       }
-    } catch { /* ignore */ }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   };
 
   const updateStatus = async (id: string, status: string) => {
     try {
+      setError(null);
       const data: Record<string, string> = { status };
       if (status === "DELIVERED") data.deliveredDate = new Date().toISOString();
       const res = await fetch(`/api/deliveries/${id}`, {
@@ -76,8 +91,14 @@ export default function DeliveriesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (res.ok) fetchDeliveries();
-    } catch { /* ignore */ }
+      if (res.ok) {
+        fetchDeliveries();
+      } else {
+        setError("Failed to update delivery status");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   };
 
   const statusBadge = (status: string) => {
@@ -113,6 +134,12 @@ export default function DeliveriesPage() {
           <TabsTrigger value="CANCELLED">{t("cancelled")}</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6">

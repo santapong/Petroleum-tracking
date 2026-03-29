@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { validateInventoryUpdate, DEFAULT_TANK_CAPACITY } from "@/lib/validations";
 
 export async function GET(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { searchParams } = new URL(req.url);
     const stationId = searchParams.get("stationId");
 
@@ -23,22 +28,28 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const body = await req.json();
-    const { stationId, fuelType, quantity } = body;
+    const validation = validateInventoryUpdate(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    }
 
     const inventory = await prisma.inventory.upsert({
       where: {
-        stationId_fuelType: { stationId, fuelType },
+        stationId_fuelType: { stationId: body.stationId, fuelType: body.fuelType },
       },
       update: {
-        quantity: parseFloat(quantity),
+        quantity: parseFloat(body.quantity),
         lastUpdated: new Date(),
       },
       create: {
-        stationId,
-        fuelType,
-        quantity: parseFloat(quantity),
-        capacity: body.capacity ? parseFloat(body.capacity) : 50000,
+        stationId: body.stationId,
+        fuelType: body.fuelType,
+        quantity: parseFloat(body.quantity),
+        capacity: body.capacity ? parseFloat(body.capacity) : DEFAULT_TANK_CAPACITY,
       },
       include: { station: true },
     });

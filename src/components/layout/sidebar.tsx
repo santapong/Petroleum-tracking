@@ -13,6 +13,7 @@ import {
   LogOut,
   Globe,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -77,7 +78,12 @@ export function Sidebar() {
               {locale === "en" ? "ภาษาไทย" : "English"}
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-destructive">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-destructive"
+            onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+          >
             <LogOut className="h-4 w-4" />
             {t("logout")}
           </Button>

@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { DELIVERY_STATUSES, DEFAULT_TANK_CAPACITY } from "@/lib/validations";
 
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { id } = await params;
     const body = await req.json();
+
+    if (body.status && !DELIVERY_STATUSES.includes(body.status)) {
+      return NextResponse.json({ error: "Invalid delivery status" }, { status: 400 });
+    }
 
     const data: Record<string, unknown> = {};
     if (body.status) data.status = body.status;
@@ -16,33 +25,38 @@ export async function PUT(
     if (body.truckPlate) data.truckPlate = body.truckPlate;
     if (body.notes !== undefined) data.notes = body.notes;
 
-    const delivery = await prisma.delivery.update({
-      where: { id },
-      data,
-      include: { depot: true, station: true },
-    });
-
-    // If delivered, update inventory
-    if (body.status === "DELIVERED") {
-      await prisma.inventory.upsert({
-        where: {
-          stationId_fuelType: {
-            stationId: delivery.stationId,
-            fuelType: delivery.fuelType,
-          },
-        },
-        update: {
-          quantity: { increment: delivery.quantity },
-          lastUpdated: new Date(),
-        },
-        create: {
-          stationId: delivery.stationId,
-          fuelType: delivery.fuelType,
-          quantity: delivery.quantity,
-          capacity: 50000,
-        },
+    // Use transaction to ensure delivery update and inventory update are atomic
+    const delivery = await prisma.$transaction(async (tx) => {
+      const updated = await tx.delivery.update({
+        where: { id },
+        data,
+        include: { depot: true, station: true },
       });
-    }
+
+      // If delivered, update inventory
+      if (body.status === "DELIVERED") {
+        await tx.inventory.upsert({
+          where: {
+            stationId_fuelType: {
+              stationId: updated.stationId,
+              fuelType: updated.fuelType,
+            },
+          },
+          update: {
+            quantity: { increment: updated.quantity },
+            lastUpdated: new Date(),
+          },
+          create: {
+            stationId: updated.stationId,
+            fuelType: updated.fuelType,
+            quantity: updated.quantity,
+            capacity: DEFAULT_TANK_CAPACITY,
+          },
+        });
+      }
+
+      return updated;
+    });
 
     return NextResponse.json(delivery);
   } catch {

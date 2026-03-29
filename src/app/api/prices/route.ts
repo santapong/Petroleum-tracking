@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { validatePrice } from "@/lib/validations";
 
 export async function GET(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { searchParams } = new URL(req.url);
     const fuelType = searchParams.get("fuelType");
     const startDate = searchParams.get("startDate");
@@ -30,15 +35,21 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const body = await req.json();
-    const { fuelType, price, effectiveDate, source } = body;
+    const validation = validatePrice(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    }
 
     const fuelPrice = await prisma.fuelPrice.create({
       data: {
-        fuelType,
-        price: parseFloat(price),
-        effectiveDate: new Date(effectiveDate),
-        source: source || "EPPO",
+        fuelType: body.fuelType,
+        price: parseFloat(body.price),
+        effectiveDate: new Date(body.effectiveDate),
+        source: body.source || "EPPO",
       },
     });
 

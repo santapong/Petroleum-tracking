@@ -9,7 +9,9 @@
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -57,10 +59,15 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.5.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.1",
-    "tsx": "^4.21.0"
+    "jsdom": "^29.0.1",
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.2"
   }
 }

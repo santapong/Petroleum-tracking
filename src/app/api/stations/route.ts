@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/api-auth";
+import { validateStation, safeParseFloat } from "@/lib/validations";
 
 export async function GET(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const { searchParams } = new URL(req.url);
     const provinceId = searchParams.get("provinceId");
     const status = searchParams.get("status");
@@ -32,14 +37,22 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const { error } = await requireAuth();
+    if (error) return error;
+
     const body = await req.json();
+    const validation = validateStation(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Validation failed", details: validation.errors }, { status: 400 });
+    }
+
     const station = await prisma.station.create({
       data: {
         name: body.name,
         address: body.address,
         provinceId: body.provinceId,
-        latitude: body.latitude ? parseFloat(body.latitude) : null,
-        longitude: body.longitude ? parseFloat(body.longitude) : null,
+        latitude: safeParseFloat(body.latitude),
+        longitude: safeParseFloat(body.longitude),
         owner: body.owner,
         phone: body.phone,
         status: body.status || "ACTIVE",
