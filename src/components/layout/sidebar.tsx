@@ -12,6 +12,7 @@ import {
   BarChart3,
   LogOut,
   Globe,
+  RefreshCw,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -19,20 +20,22 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 const navItems = [
-  { key: "dashboard", href: "", icon: LayoutDashboard },
-  { key: "prices", href: "/prices", icon: DollarSign },
-  { key: "stations", href: "/stations", icon: Fuel },
-  { key: "inventory", href: "/inventory", icon: Package },
-  { key: "deliveries", href: "/deliveries", icon: Truck },
-  { key: "analytics", href: "/analytics", icon: BarChart3 },
+  { key: "dashboard", href: "", icon: LayoutDashboard, adminOnly: false },
+  { key: "prices", href: "/prices", icon: DollarSign, adminOnly: false },
+  { key: "stations", href: "/stations", icon: Fuel, adminOnly: false },
+  { key: "inventory", href: "/inventory", icon: Package, adminOnly: false },
+  { key: "deliveries", href: "/deliveries", icon: Truck, adminOnly: false },
+  { key: "analytics", href: "/analytics", icon: BarChart3, adminOnly: false },
+  { key: "adminSync", href: "/admin/sync", icon: RefreshCw, adminOnly: true },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const otherLocale = locale === "en" ? "th" : "en";
+  const visibleItems = navItems.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-sidebar">
@@ -45,7 +48,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const href = `/${locale}${item.href}`;
             const isActive =
               item.href === ""

@@ -24,6 +24,7 @@
     "inventory": "Inventory",
     "deliveries": "Deliveries",
     "analytics": "Analytics",
+    "adminSync": "Data Sync",
     "settings": "Settings",
     "logout": "Logout",
     "login": "Login",
@@ -134,5 +135,26 @@
     "last7Days": "Last 7 Days",
     "last30Days": "Last 30 Days",
     "last90Days": "Last 90 Days"
+  },
+  "admin": {
+    "syncTitle": "Data Sync",
+    "syncDescription": "Pull live prices from EPPO and bulk-import operational data from CSV.",
+    "refreshPrices": "Refresh Prices from EPPO",
+    "refreshPricesDescription": "Fetches current retail fuel prices from the EPPO open API and upserts them into the local database.",
+    "syncing": "Syncing...",
+    "uploading": "Uploading...",
+    "chooseCsv": "Choose CSV file",
+    "inserted": "Inserted",
+    "updated": "Updated",
+    "skipped": "Skipped",
+    "rowErrors": "Row errors",
+    "import": {
+      "stations": "Import Stations CSV",
+      "stationsDescription": "Columns: name, address, provinceCode, latitude, longitude, owner, phone, status",
+      "inventory": "Import Inventory CSV",
+      "inventoryDescription": "Columns: stationName, fuelType, quantity, capacity",
+      "deliveries": "Import Deliveries CSV",
+      "deliveriesDescription": "Columns: depotName, stationName, fuelType, quantity, status, scheduledDate, deliveredDate, driverName, truckPlate, notes"
+    }
   }
 }
