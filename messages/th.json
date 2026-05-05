@@ -24,6 +24,7 @@
     "inventory": "คลังสินค้า",
     "deliveries": "การจัดส่ง",
     "analytics": "วิเคราะห์ข้อมูล",
+    "adminSync": "ซิงค์ข้อมูล",
     "settings": "ตั้งค่า",
     "logout": "ออกจากระบบ",
     "login": "เข้าสู่ระบบ",
@@ -134,5 +135,26 @@
     "last7Days": "7 วันล่าสุด",
     "last30Days": "30 วันล่าสุด",
     "last90Days": "90 วันล่าสุด"
+  },
+  "admin": {
+    "syncTitle": "ซิงค์ข้อมูล",
+    "syncDescription": "ดึงราคาจริงจาก EPPO และนำเข้าข้อมูลการดำเนินงานเป็นชุดผ่าน CSV",
+    "refreshPrices": "รีเฟรชราคาจาก EPPO",
+    "refreshPricesDescription": "ดึงราคาน้ำมันขายปลีกล่าสุดจาก EPPO open API และอัปเดตลงฐานข้อมูล",
+    "syncing": "กำลังซิงค์...",
+    "uploading": "กำลังอัปโหลด...",
+    "chooseCsv": "เลือกไฟล์ CSV",
+    "inserted": "เพิ่ม",
+    "updated": "อัปเดต",
+    "skipped": "ข้าม",
+    "rowErrors": "ข้อผิดพลาดของแถว",
+    "import": {
+      "stations": "นำเข้าสถานีจาก CSV",
+      "stationsDescription": "คอลัมน์: name, address, provinceCode, latitude, longitude, owner, phone, status",
+      "inventory": "นำเข้าคลังสินค้าจาก CSV",
+      "inventoryDescription": "คอลัมน์: stationName, fuelType, quantity, capacity",
+      "deliveries": "นำเข้าการจัดส่งจาก CSV",
+      "deliveriesDescription": "คอลัมน์: depotName, stationName, fuelType, quantity, status, scheduledDate, deliveredDate, driverName, truckPlate, notes"
+    }
   }
 }

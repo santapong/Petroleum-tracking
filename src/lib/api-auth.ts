@@ -11,3 +11,16 @@ export async function requireAuth() {
   }
   return { session, error: null };
 }
+
+export async function requireAdmin() {
+  const { session, error } = await requireAuth();
+  if (error) return { session: null, error };
+  const role = (session.user as { role?: string }).role;
+  if (role !== "ADMIN") {
+    return {
+      session: null,
+      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+  return { session, error: null };
+}

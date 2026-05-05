@@ -52,6 +52,8 @@ npm run dev
 ```
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/petroleum_tracking"
 AUTH_SECRET="your-secret-key"
+EPPO_API_BASE="https://api.eppo.go.th"
+EPPO_CATALOG_BASE="https://catalog.eppo.go.th"
 ```
 
 ### Default Admin Account
@@ -67,3 +69,21 @@ After seeding:
 - `npm run db:push` - Push Prisma schema to database
 - `npm run db:seed` - Seed database with sample data
 - `npm run db:studio` - Open Prisma Studio
+
+## Real Data: Admin Data Sync
+
+The seeded data is for demos only. Admins can replace it with real data from the **Data Sync** page (`/[locale]/admin/sync`), which is visible in the sidebar to users with the `ADMIN` role.
+
+### Refresh prices from EPPO
+
+Click **Refresh Prices from EPPO**. The server calls Thailand's Energy Policy and Planning Office open API (`api.eppo.go.th`) and falls back to the EPPO CKAN data catalog (`catalog.eppo.go.th`), maps Thai/English fuel labels to the `FuelType` enum, and upserts rows in `FuelPrice` keyed by `(fuelType, effectiveDate)` so re-runs are idempotent.
+
+### CSV imports (stations / inventory / deliveries)
+
+EPPO does not publish per-station operational data. Upload CSVs with the columns below to populate those tables:
+
+- `stations.csv` — `name, address, provinceCode, latitude, longitude, owner, phone, status` (provinceCode matches `Province.nameEn`)
+- `inventory.csv` — `stationName, fuelType, quantity, capacity`
+- `deliveries.csv` — `depotName, stationName, fuelType, quantity, status, scheduledDate, deliveredDate, driverName, truckPlate, notes`
+
+Each upload returns `{ inserted, updated, skipped, errors[] }`. Stations and inventory upsert by natural key; deliveries always insert.
