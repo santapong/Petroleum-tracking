@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");

@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen">
       <Sidebar isAdmin={isAdmin} />
-      <MobileNav />
+      <MobileNav isAdmin={isAdmin} />
       <main className="md:pl-64">
         <div className="p-6">{children}</div>
       </main>

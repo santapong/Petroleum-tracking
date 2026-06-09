@@ -20,6 +20,9 @@ export const STATION_STATUSES = ["ACTIVE", "INACTIVE", "MAINTENANCE"] as const;
 
 export const DEFAULT_TANK_CAPACITY = 50000;
 
+// Stock below this fraction of capacity counts as a low-stock alert
+export const LOW_STOCK_THRESHOLD = 0.25;
+
 export function validateEmail(email: string): {
   valid: boolean;
   error?: string;
@@ -171,6 +174,12 @@ export function validateInventoryUpdate(data: Record<string, unknown>): {
   const qty = safeParseFloat(data.quantity);
   if (qty === null || qty < 0) {
     errors.quantity = "Quantity must be 0 or greater";
+  }
+  if (data.capacity !== undefined && data.capacity !== null && data.capacity !== "") {
+    const cap = safeParseFloat(data.capacity);
+    if (cap === null || cap <= 0) {
+      errors.capacity = "Capacity must be greater than 0";
+    }
   }
 
   return { valid: Object.keys(errors).length === 0, errors };

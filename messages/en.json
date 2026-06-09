@@ -13,6 +13,7 @@
     "status": "Status",
     "noData": "No data available",
     "confirm": "Confirm",
+    "confirmDelete": "Are you sure you want to delete this record?",
     "back": "Back",
     "submit": "Submit",
     "baht": "THB"
@@ -52,7 +53,14 @@
     "priceChanges": "Price Changes Today",
     "lowInventory": "Low Inventory Alerts",
     "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions"
+    "quickActions": "Quick Actions",
+    "deliveryActivity": "Delivery",
+    "priceUpdated": "Price updated",
+    "lowStockAlert": "Low inventory alert",
+    "updatePrices": "Update Prices",
+    "newDelivery": "New Delivery",
+    "manageStations": "Manage Stations",
+    "viewAnalytics": "View Analytics"
   },
   "prices": {
     "title": "Fuel Prices",
@@ -89,7 +97,8 @@
     "inactive": "Inactive",
     "maintenance": "Maintenance",
     "stationDetail": "Station Details",
-    "inventorySummary": "Inventory Summary"
+    "inventorySummary": "Inventory Summary",
+    "recentDeliveries": "Recent Deliveries"
   },
   "inventory": {
     "title": "Inventory Management",
@@ -101,6 +110,10 @@
     "level": "Level",
     "lastUpdated": "Last Updated",
     "updateInventory": "Update Inventory",
+    "province": "Province",
+    "totalRecords": "Total Records",
+    "lowStockAlerts": "Low Stock Alerts",
+    "healthyStock": "Healthy Stock",
     "low": "Low",
     "medium": "Medium",
     "full": "Full"

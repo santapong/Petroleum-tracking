@@ -25,11 +25,18 @@ interface Station {
   inventory: { fuelType: string; quantity: number; capacity: number }[];
 }
 
+interface Province {
+  id: string;
+  nameEn: string;
+  nameTh: string;
+}
+
 export default function StationsPage() {
   const t = useTranslations("stations");
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const [stations, setStations] = useState<Station[]>([]);
+  const [provinces, setProvinces] = useState<Province[]>([]);
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,6 +60,17 @@ export default function StationsPage() {
   }, [search]);
 
   useEffect(() => { fetchStations(); }, [fetchStations]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/provinces");
+        if (res.ok) setProvinces(await res.json());
+      } catch {
+        setError("Failed to load provinces");
+      }
+    })();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -175,6 +193,19 @@ export default function StationsPage() {
             <div className="grid gap-2">
               <Label>{t("address")}</Label>
               <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            </div>
+            <div className="grid gap-2">
+              <Label>{t("province")}</Label>
+              <Select value={form.provinceId} onValueChange={(v) => setForm({ ...form, provinceId: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {provinces.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {locale === "th" ? p.nameTh : p.nameEn}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>{t("owner")}</Label>
