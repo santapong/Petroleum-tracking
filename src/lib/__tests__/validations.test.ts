@@ -302,6 +302,27 @@ describe("validateInventoryUpdate", () => {
     expect(result.valid).toBe(false);
     expect(result.errors.quantity).toBeDefined();
   });
+
+  it("accepts a valid capacity", () => {
+    const result = validateInventoryUpdate({ ...validInventory, capacity: 50000 });
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts missing capacity", () => {
+    const result = validateInventoryUpdate({ ...validInventory, capacity: "" });
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects zero or negative capacity", () => {
+    expect(validateInventoryUpdate({ ...validInventory, capacity: 0 }).valid).toBe(false);
+    expect(validateInventoryUpdate({ ...validInventory, capacity: -100 }).valid).toBe(false);
+  });
+
+  it("rejects non-numeric capacity", () => {
+    const result = validateInventoryUpdate({ ...validInventory, capacity: "abc" });
+    expect(result.valid).toBe(false);
+    expect(result.errors.capacity).toBeDefined();
+  });
 });
 
 describe("Constants", () => {

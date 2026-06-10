@@ -14,26 +14,31 @@ import {
   Menu,
   X,
   Globe,
+  LogOut,
+  RefreshCw,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { key: "dashboard", href: "", icon: LayoutDashboard },
-  { key: "prices", href: "/prices", icon: DollarSign },
-  { key: "stations", href: "/stations", icon: Fuel },
-  { key: "inventory", href: "/inventory", icon: Package },
-  { key: "deliveries", href: "/deliveries", icon: Truck },
-  { key: "analytics", href: "/analytics", icon: BarChart3 },
+  { key: "dashboard", href: "", icon: LayoutDashboard, adminOnly: false },
+  { key: "prices", href: "/prices", icon: DollarSign, adminOnly: false },
+  { key: "stations", href: "/stations", icon: Fuel, adminOnly: false },
+  { key: "inventory", href: "/inventory", icon: Package, adminOnly: false },
+  { key: "deliveries", href: "/deliveries", icon: Truck, adminOnly: false },
+  { key: "analytics", href: "/analytics", icon: BarChart3, adminOnly: false },
+  { key: "adminSync", href: "/admin/sync", icon: RefreshCw, adminOnly: true },
 ];
 
-export function MobileNav() {
+export function MobileNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const otherLocale = locale === "en" ? "th" : "en";
+  const visibleItems = navItems.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <div className="md:hidden">
@@ -50,7 +55,7 @@ export function MobileNav() {
       {open && (
         <div className="fixed inset-0 top-14 z-50 bg-background">
           <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
+            {visibleItems.map((item) => {
               const href = `/${locale}${item.href}`;
               const isActive =
                 item.href === ""
@@ -82,6 +87,16 @@ export function MobileNav() {
               <Globe className="h-4 w-4" />
               {locale === "en" ? "ภาษาไทย" : "English"}
             </Link>
+            <button
+              onClick={() => {
+                setOpen(false);
+                signOut({ callbackUrl: `/${locale}/login` });
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              {t("logout")}
+            </button>
           </nav>
         </div>
       )}

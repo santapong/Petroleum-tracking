@@ -43,6 +43,7 @@ export async function PUT(req: Request) {
       },
       update: {
         quantity: parseFloat(body.quantity),
+        ...(body.capacity ? { capacity: parseFloat(body.capacity) } : {}),
         lastUpdated: new Date(),
       },
       create: {

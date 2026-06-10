@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,20 +30,29 @@ export default function PricesPage() {
   const t = useTranslations("prices");
   const tCommon = useTranslations("common");
   const [prices, setPrices] = useState<FuelPrice[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ fuelType: "", price: "", effectiveDate: "", source: "EPPO" });
 
   const fetchPrices = useCallback(async () => {
     try {
+      setError(null);
       const res = await fetch("/api/prices");
-      if (res.ok) setPrices(await res.json());
-    } catch { /* ignore */ }
+      if (res.ok) {
+        setPrices(await res.json());
+      } else {
+        setError("Failed to fetch prices");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   }, []);
 
   useEffect(() => { fetchPrices(); }, [fetchPrices]);
 
   const handleSubmit = async () => {
     try {
+      setError(null);
       const res = await fetch("/api/prices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,8 +62,29 @@ export default function PricesPage() {
         setDialogOpen(false);
         setForm({ fuelType: "", price: "", effectiveDate: "", source: "EPPO" });
         fetchPrices();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create price record");
       }
-    } catch { /* ignore */ }
+    } catch {
+      setError("Network error. Please try again.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm(tCommon("confirmDelete"))) return;
+    try {
+      setError(null);
+      const res = await fetch(`/api/prices/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchPrices();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete price record");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    }
   };
 
   const fuelTypeLabel = (type: string) => {
@@ -85,6 +115,12 @@ export default function PricesPage() {
           {t("addPrice")}
         </Button>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <Tabs defaultValue="current">
         <TabsList>
@@ -133,6 +169,7 @@ export default function PricesPage() {
                     <TableHead>{t("price")}</TableHead>
                     <TableHead>{t("effectiveDate")}</TableHead>
                     <TableHead>{t("source")}</TableHead>
+                    <TableHead>{tCommon("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -142,11 +179,16 @@ export default function PricesPage() {
                       <TableCell>{price.price.toFixed(2)} {tCommon("baht")}</TableCell>
                       <TableCell>{new Date(price.effectiveDate).toLocaleDateString()}</TableCell>
                       <TableCell>{price.source}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(price.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {prices.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
                         {tCommon("noData")}
                       </TableCell>
                     </TableRow>

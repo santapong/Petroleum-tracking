@@ -66,9 +66,14 @@ After seeding:
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run test` - Run unit tests in watch mode
+- `npm run test:run` - Run unit tests once
 - `npm run db:push` - Push Prisma schema to database
 - `npm run db:seed` - Seed database with sample data
 - `npm run db:studio` - Open Prisma Studio
+
+Continuous integration runs lint, tests, and the production build on every pull request (see `.github/workflows/ci.yml`).
 
 ## Real Data: Admin Data Sync
 

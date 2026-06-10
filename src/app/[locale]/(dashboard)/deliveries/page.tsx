@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Delivery {
   id: string;
@@ -27,6 +27,16 @@ interface Delivery {
   station: { name: string; province: { nameEn: string } };
 }
 
+interface DepotOption {
+  id: string;
+  name: string;
+}
+
+interface StationOption {
+  id: string;
+  name: string;
+}
+
 const FUEL_TYPES = [
   "DIESEL", "DIESEL_B7", "GASOHOL_91", "GASOHOL_95",
   "GASOHOL_E20", "GASOHOL_E85", "LPG", "NGV",
@@ -36,6 +46,8 @@ export default function DeliveriesPage() {
   const t = useTranslations("deliveries");
   const tCommon = useTranslations("common");
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [depots, setDepots] = useState<DepotOption[]>([]);
+  const [stations, setStations] = useState<StationOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -59,6 +71,21 @@ export default function DeliveriesPage() {
   }, [statusFilter]);
 
   useEffect(() => { fetchDeliveries(); }, [fetchDeliveries]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [depotsRes, stationsRes] = await Promise.all([
+          fetch("/api/depots"),
+          fetch("/api/stations"),
+        ]);
+        if (depotsRes.ok) setDepots(await depotsRes.json());
+        if (stationsRes.ok) setStations(await stationsRes.json());
+      } catch {
+        setError("Failed to load depots and stations");
+      }
+    })();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -200,6 +227,28 @@ export default function DeliveriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
+              <Label>{t("depot")}</Label>
+              <Select value={form.depotId} onValueChange={(v) => setForm({ ...form, depotId: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {depots.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>{t("station")}</Label>
+              <Select value={form.stationId} onValueChange={(v) => setForm({ ...form, stationId: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {stations.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
               <Label>{t("fuelType")}</Label>
               <Select value={form.fuelType} onValueChange={(v) => setForm({ ...form, fuelType: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -225,6 +274,10 @@ export default function DeliveriesPage() {
             <div className="grid gap-2">
               <Label>{t("truckPlate")}</Label>
               <Input value={form.truckPlate} onChange={(e) => setForm({ ...form, truckPlate: e.target.value })} />
+            </div>
+            <div className="grid gap-2">
+              <Label>{t("notes")}</Label>
+              <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
