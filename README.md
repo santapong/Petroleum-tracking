@@ -75,6 +75,40 @@ After seeding:
 
 Continuous integration runs lint, tests, and the production build on every pull request (see `.github/workflows/ci.yml`).
 
+## Deploying to Vercel (UAT)
+
+The repo is Vercel-ready: `postinstall` regenerates the Prisma client on every install (Vercel caches `node_modules`), `vercel.json` pins serverless functions to Singapore (`sin1`, closest region to Thailand), and the admin sync routes declare `maxDuration = 60`.
+
+### 1. Create a Postgres database
+
+Use any provider from the Vercel Marketplace (Neon, Supabase, …) or your own Postgres. Pick the **Singapore** region to match `sin1`. For serverless, use the **pooled** connection string (Neon pooler / Supabase pgbouncer on port 6543) as `DATABASE_URL`.
+
+### 2. Import the repo on Vercel
+
+[vercel.com/new](https://vercel.com/new) → import `santapong/Petroleum-tracking`. Framework preset **Next.js**, no build overrides needed. Set the environment variables:
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | pooled Postgres connection string |
+| `AUTH_SECRET` | output of `openssl rand -base64 32` |
+| `EPPO_API_BASE` | `https://api.eppo.go.th` (optional, this is the default) |
+| `EPPO_CATALOG_BASE` | `https://catalog.eppo.go.th` (optional, this is the default) |
+
+`AUTH_URL` is **not** needed on Vercel — Auth.js v5 detects the deployment URL automatically.
+
+### 3. Apply the schema and seed
+
+From your machine, pointed at the cloud database (use the **direct/non-pooled** URL for schema changes if your provider distinguishes them):
+
+```bash
+DATABASE_URL="<direct-connection-string>" npx prisma db push
+DATABASE_URL="<direct-connection-string>" npm run db:seed
+```
+
+### 4. Deploy and harden
+
+Deploy (or just push to `main`). Then log in as the seeded admin and **change the default password immediately** — UAT on Vercel is publicly reachable.
+
 ## Real Data: Admin Data Sync
 
 The seeded data is for demos only. Admins can replace it with real data from the **Data Sync** page (`/[locale]/admin/sync`), which is visible in the sidebar to users with the `ADMIN` role.
