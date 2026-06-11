@@ -23,6 +23,9 @@ interface DeliveryRow {
   notes?: string;
 }
 
+// Row-by-row inserts on large CSVs can exceed Vercel's 10s default
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const { error } = await requireAdmin();

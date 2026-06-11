@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/api-auth";
 import { fetchEppoPrices } from "@/lib/eppo";
 
+// EPPO API + CKAN fallback can take well over Vercel's 10s default
+export const maxDuration = 60;
+
 export async function POST() {
   try {
     const { error } = await requireAdmin();
